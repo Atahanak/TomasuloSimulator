@@ -77,7 +77,7 @@ class ReservationStation:
             raise 'Trying to write back from an empty RS'
         if self.writing_back == False:
             raise 'Trying to write back from an RS that\'s executing'
-        if self.CDB.check_availability() == False:
+        if self.CDB.is_empty() == False:
             self.writing_back = True
         else:
             self.CDB.add_result(self.Des, self.result)
