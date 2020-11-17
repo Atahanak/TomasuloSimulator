@@ -67,7 +67,7 @@ class CPU:
         self.program_counter = 0
         self.program = program
         end_of_program = self.get_end_of_program(program)
-
+        cycle = 0
         while self.program_counter <= end_of_program:
 
             instruction = self.program[self.program_counter]
@@ -130,14 +130,32 @@ class CPU:
             if jump_location is not None:
                 self.program_counter = jump_location
             self.RB.commit()
-            self.printReport()
+            self.printReport(cycle)
+            cycle+=1
     
     def printInstructionWindow(self):
         print("Instruction Window")
+        for instruction in self.instruction_window:
+            o = instruction["INST"]
+            if 'OP1' in list(instruction.keys()):
+                o = o + " " + instruction["OP1"] + ","
+            if 'OP2' in list(instruction.keys()):
+                o = o + " " + instruction["OP2"] + ","
+            if 'DEST' in list(instruction.keys()):
+                o = o + " " + instruction["DEST"]
+            print(o)
 
-    
-    def printReport(self):
+    def printReport(self, cycle):
+        print("------------------------")
+        cs = "CYCLE " + str(cycle)
+        print(cs)
         self.printInstructionWindow()
+        print()
         self.RT.printTable()
-
+        print()
+        self.RS.printRS()
+        print()
         self.RB.printTable()
+        print()
+        self.RS.printCDB()
+        print()
