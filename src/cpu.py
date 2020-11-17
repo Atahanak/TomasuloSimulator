@@ -68,7 +68,7 @@ class CPU:
         self.program = program
         end_of_program = self.get_end_of_program(program)
         cycle = 0
-        while self.RB.is_empty() or cycle != 0 and cycle < 81:
+        while (self.program_counter <= end_of_program or not self.RB.is_empty()):# and cycle < 81:
         
             rs_empty = None
             if self.program_counter <= end_of_program:
