@@ -92,4 +92,23 @@ class ReservationStation:
         # checks if the reservation station is done executing
         # if it is, the RS will populate its results to the CDB
     
+    def printReservationStation(self):
+        print(self.ID+": ", end='')
+        if not self.is_executing():
+            print('')
+            return
+        
+        print(self.Op+'\t', end='')
 
+        op1 = self.Qj if self.Qj != None else str(float(self.Vj))
+        op2 = self.Qk if self.Qk != None else str(float(self.Vk))
+        print(op1+'\t', end='')
+        print(op2+'\t', end='')
+        print(self.Des)
+
+if __name__ == "__main__":
+    cdd = CommonDataBus.CommonDataBus()
+    rs = ReservationStation("ROB0", ['ADD'], 2,cdd)
+    rs.printReservationStation()
+    rs.issue_to_RS('ADD','ROB1', None, 0, 2, 'ROB4')
+    rs.printReservationStation()
