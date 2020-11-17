@@ -21,7 +21,12 @@ class FunctionalUnit:
         if (self.type == operations[2]): self.result = float(self.operand1)*float(self.operand2)
         if (self.type == operations[3]): self.result = float(self.operand1)/float(self.operand2)
         if (self.type == operations[4]): self.result = float(self.operand1)
-        if (self.type == operations[5]): self.result = True if self.operand1 >= self.operand2 else NextAddress
+        if (self.type == operations[5]): 
+            if self.operand1>=self.operand2:
+                self.result = True 
+            else:
+                self.result = NextAddress
+                print("i hate debuggers", self.result)
         self.Executing = True
         if self.cycles_left == 0:
             return [True, self.result]
