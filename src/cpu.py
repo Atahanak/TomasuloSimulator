@@ -68,7 +68,7 @@ class CPU:
         self.program = program
         end_of_program = self.get_end_of_program(program)
         cycle = 0
-        while self.program_counter <= end_of_program: # and cycle < 4:
+        while self.program_counter <= end_of_program and cycle < 81:
         
             instruction = self.program[self.program_counter]
             self.program_counter+= INSTRUCTION_SIZE
@@ -91,7 +91,7 @@ class CPU:
             
             jump_location = self.RB.update() #if flushed return back to branch address
             if jump_location is not None:
-                self.program_counter = jump_location
+                self.program_counter = jump_location + INSTRUCTION_SIZE
 
             for rs in self.RS: #execute
                 if rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
@@ -149,7 +149,7 @@ class CPU:
                     rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
                     issue_object['Des'] = rob_dest
                     if operation in BRANCH_OPERATIONS:
-                        issue_object['Addr'] = self.program_counter
+                        issue_object['Addr'] = int(instruction["AF"])
                     else:
                         issue_object['Addr'] = None
 

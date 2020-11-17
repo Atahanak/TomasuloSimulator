@@ -32,7 +32,7 @@ class ReservationStation:
         self.result = None
         self.Busy = False
         self.writing_back = False
-        self.addr = None
+        self.Addr = None
     
     def issue_to_RS(self, Op, Qj, Qk, Vj, Vk, Des, Addr = None):
         if self.writing_back == True:

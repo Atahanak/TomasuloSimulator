@@ -40,5 +40,4 @@ if __name__=="__main__":
     registers.printTable()
     registers.reserveRegister(2, "ROB1")
     registers.printTable()
-    registers.updateRegister(2, 1.2)
     registers.printTable()

@@ -65,6 +65,7 @@ def parse_program(file_name):
                 ls = line_c.split()
                 inst = {}
                 address = int(ls[0][:-1])
+                inst["AF"] = address
                 inst["INST"] = ls[1]
                 if inst["INST"] == "LD":
                     inst["DEST"] = ls[2][:-1] # remove comma
@@ -103,7 +104,7 @@ if __name__=="__main__":
     print(units)
     print("Program:")
     program = parse_program("configuration/Program.txt")
-  #  program = parse_program(sys.argv[3])
+    #program = parse_program(sys.argv[3])
     print(program)
     print()
     print()
