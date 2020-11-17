@@ -1,18 +1,22 @@
 from RegisterTable import RegisterTable as RT
+from Constants import BRANCH_OPERATIONS
 #from CommonDataBus
 
 class ReorderBuffer:
     
-    __ROB_Entry = {"operation": None, "busy": None, "ready": False, "dest": None, "value": None}
-    def __init__(self, size, register_table, cbd):
+    rob_entry = {"operation": None, "ready": False, "dest": None, "value": None}
+    def __init__(self, size, register_table, CDB):
         self.register_table = register_table
         self.head = 0
         self.tail = 0
         self.size = size
-        self.CBD = cbd
+        self.CDB = CDB
         self.table = []
         for i in range(self.size):
-            self.table.append(self.__ROB_Entry)
+            self.table.append(self.rob_entry)
+
+    def is_full(self):
+        return self.head == self.tail and self.table[self.head]["operation"] is not None
 
     def robid_2_str(self, rid):
         return "ROB"+str(rid)
@@ -33,7 +37,7 @@ class ReorderBuffer:
             print(p)
 
     def get_instruction(self, operation, dest):
-        if self.head == self.tail and self.table[self.head]["operation"] is not None: #check if rob is available
+        if self.is_full(): #check if rob is available
             return None #table is full
         else:
             self.table[self.tail]["operation"] = operation
@@ -43,17 +47,27 @@ class ReorderBuffer:
             return self.robid_2_str(self.tail-1)
 
     def update(self):
-        if self.CBD.Full:
-            self.table[self.robid_2_idx(self.CBD.ROB_ID)]["value"] = self.CBD.Value
+        if self.CDB.Full:
+            self.table[self.robid_2_idx(self.CDB.ROB_ID)]["value"] = self.CDB.Value
+
 
     def commit(self):
         if self.table[self.head]["value"] is not None:
-            self.register_table.updateRegister(self.table[self.head]["dest"], self.table[self.head]["value"])
-            self.table[self.head] = self.__ROB_Entry
+            if self.table[self.head]["operation"] in BRANCH_OPERATIONS and self.table[self.head]["value"] != True: #flush entries between head and tail
+                self.flush(self.head + 1)
+                return self.table[self.head]["value"]
+            else:
+                self.register_table.updateRegister(self.table[self.head]["dest"], self.table[self.head]["value"])
+            self.table[self.head] = self.rob_entry
             self.head = (self.head + 1) % self.size #update head in a circular fashion
+        return None
 
-    def flush(self):
-        pass
+    def flush(self, start):
+        end = self.tail
+        if end < start:
+            end += self.size - self.head
+        for i in range(start, end):
+            self.table[i % self.size] = self.rob_entry
 
 
 if __name__=="__main__":

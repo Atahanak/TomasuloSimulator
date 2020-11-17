@@ -2,6 +2,7 @@ from RegisterTable import RegisterTable as RT
 from ReorderBuffer import ReorderBuffer as RB
 from CommonDataBus import CommonDataBus as CDB
 from ReservationStation import ReservationStation as RS
+from Constants import BRANCH_OPERATIONS
 INSTRUCTION_SIZE = 4
 class CPU:
     def __init__(self, params, instructions, units, program):
@@ -21,7 +22,7 @@ class CPU:
             self.RS.append(rs)
 
     # can't add past size
-    def add_to_instruction_window(self, insturction):
+    def add_to_instruction_window(self, instruction):
         if len(self.instruction_window) >=self.instruction_window_size:
             return False
         else:
@@ -56,23 +57,32 @@ class CPU:
     def run(self):
         # fetch the next instruction from the program
         # TODO FIGURE OUT LOOP
-        while (some condition telling us program is done):
+        #while (some condition telling us program is done):
+        # - go over all the RS 
+        #       - ask them to read the CBD 
+        #       - ask them to execute or update cdb
+        # TODO FINISH LOOP
+
         instruction = self.program[self.program_counter]
         self.program_counter+= INSTRUCTION_SIZE
         # try to add it to the instruction window
         added_succesfully = self.add_to_instruction_window(instruction)
         if not added_succesfully:
             self.program_counter-= INSTRUCTION_SIZE
-        # attempt to issue an instruction from the instruction window
-        # - get instruction from window
-        # - check if there's a free RS for this instruction
+        elif instruction['INST'] in BRANCH_OPERATIONS:
+            self.program_counter = int(instruction['DEST']) - INSTRUCTION_SIZE
+
         instruction = self.top_instruction_window()
-        if instruction is not None:
+        rs_empty = None
+        if instruction is not None and not self.RB.is_full():
             operation = instruction['INST'] 
-            rs = self.find_empty_rs(operation)
-            if rs is not None:
-        #       - get the register values (or ROB values) from RT, RB
+            rs_empty = self.find_empty_rs(operation)
+        
+        for rs in self.RS: # EXCEPT THE GUY WHO JUST GOT ISSUED
+            if rs is rs_empty:
+                #- get the register values (or ROB values) from RT, RB
                 self.remove_from_instruction_window()
+                operation = instruction['INST'] 
                 issue_object = {'op': operation}
                 if 'OP1' in list(instruction.keys()):
                     op1 = instruction['OP1'] 
@@ -92,29 +102,36 @@ class CPU:
                         issue_object['Qk'] = None
                 if 'DEST' in list(instruction.keys()):
                     dest = instruction['DEST']
-                # reserve an ROB
-                    # using the register ID to write to, will reserve an ROB entry
-                    rob_dest = self.RB.get_instruction(operation, dest)
+                    rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
                     issue_object['Des'] = rob_dest
-                else : issue_object['Dest'] = None
+                else : 
+                    issue_object['Dest'] = None
+                if operation in BRANCH_OPERATIONS:
+                    issue_object['Addr'] = self.program_counter
+                else:
+                    issue_object['Addr'] = None
 
-        #       - tell register which ROB it is assigned / handled by ROB
-        #       - Issue the instruction to the RS
-                rs.issue_to_RS(issue_object['op'], issue_object['Qj'], issue_object['Qk'], issue_object['Vj'], issue_object['Vk'], issue_object['Des'])
-            
-        # - go over all the RS 
-        #       - ask them to read the CBD 
-        #       - ask them to execute or update cdb
-        # TODO FINISH LOOP
-        for rs in self.RS: # EXCEPT THE GUY WHO JUST GOT ISSUED
-            if rs.is_executing():
-                # either execute or write back
+                #       - tell register which ROB it is assigned / handled by ROB
+                #       - Issue the instruction to the RS
+                rs.issue_to_RS(issue_object['op'], issue_object['Qj'], issue_object['Qk'], issue_object['Vj'], issue_object['Vk'], issue_object['Des'], issue_object['Addr'])
+            elif rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
+                rs.execute()
+            elif rs.is_writing_back(): #write back
+                rs.write_back()
+        
         self.RB.update() 
-        self.RB.commit()
-        # TODO FLUSH BOI
-        # - tell the ROB to update from cbd
-        # - tell the rob to commit to register file
+        jump_location = self.RB.commit() #if flushed return back to branch address
+        if jump_location is not None:
+            self.program_counter = jump_location
+
         # - print out the cycle info
-    # TODO PRINT FUNCTION
+    
+    def printInstructionWindow(self):
+        print("Instruction Window")
+
+    
     def print(self):
-        print('hello')
+        self.printInstructionWindow()
+        self.RT.printTable()
+
+        self.RB.printTable()

@@ -1,5 +1,6 @@
 import CommonDataBus
 import FunctionalUnit 
+from constants import BRANCH_OPERATIONS
 
 class ReservationStation:
     def __init__(self, name, typ, cycles, cdb):
@@ -31,8 +32,9 @@ class ReservationStation:
         self.result = None
         self.Busy = False
         self.writing_back = False
+        self.addr = None
     
-    def issue_to_RS(self, Op, Qj, Qk, Vj, Vk, Des):
+    def issue_to_RS(self, Op, Qj, Qk, Vj, Vk, Des, Addr = None):
         if self.writing_back == True:
             raise 'Trying to issue to an RS that\'s writing back'
         if self.Busy == True:
@@ -44,6 +46,7 @@ class ReservationStation:
         self.Vj = Vj
         self.Vk = Vk
         self.Des = Des
+        self.Addr = Addr
     
     def execute(self):
         if self.writing_back:
@@ -70,7 +73,10 @@ class ReservationStation:
                 if value != None: self.Vk = value
                 self.Qk = None
             if self.Qj != None and self.Qk != None:
-                self.FU.begin_executing(self.Op, self.Vj, self.Vk)
+                next_address = False
+                if self.Op in BRANCH_OPERATIONS:
+                    next_address = self.Addr
+                self.FU.begin_executing(self.Op, self.Vj, self.Vk, next_address)
 
     def write_back(self):
         if self.Busy == None:
@@ -85,3 +91,5 @@ class ReservationStation:
 
         # checks if the reservation station is done executing
         # if it is, the RS will populate its results to the CDB
+    
+
