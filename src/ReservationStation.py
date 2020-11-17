@@ -22,13 +22,13 @@ class ReservationStation:
         return self.writing_back
     
     def reset_RS(self):
-        self.Op = False
-        self.Qj = False
-        self.Qk = False
-        self.Vj = False
-        self.Vk = False
-        self.Des = False
-        self.result = False
+        self.Op = None
+        self.Qj = None
+        self.Qk = None
+        self.Vj = None
+        self.Vk = None
+        self.Des = None
+        self.result = None
         self.Busy = False
         self.writing_back = False
     
@@ -48,36 +48,36 @@ class ReservationStation:
     def execute(self):
         if self.writing_back:
             raise 'trying to execute an RS that\'s executing'
-        if self.Busy == False:
+        if self.Busy == None:
             raise 'trying to execute an RS that\'s free'
         # If awaiting data bus, will start by trying to broadcast output 
         if self.FU.is_executing():
             # We must execute an additional cycle
             result = self.FU.execute_cycle()
             #if done executing
-            if result[0] !=False:
+            if result[0] !=None:
                 self.result = result[1]
                 self.FU.reset_FU()
                 self.writing_back = True
         # if the RS is busy and isn't executing, it means that it was awaiting one of its parameters
         else:
-            if (self.Qj != False):
+            if (self.Qj != None):
                 value = self.CDB.get_result(self.Qj)
-                if value != False: self.Vj = value
-                self.Qj = False
-            if (self.Qk != False):
+                if value != None: self.Vj = value
+                self.Qj = None
+            if (self.Qk != None):
                 value = self.CDB.get_result(self.Qk)
-                if value != False: self.Vk = value
-                self.Qk = False
-            if self.Qj != False and self.Qk != False:
+                if value != None: self.Vk = value
+                self.Qk = None
+            if self.Qj != None and self.Qk != None:
                 self.FU.begin_executing(self.Op, self.Vj, self.Vk)
 
     def write_back(self):
-        if self.Busy == False:
+        if self.Busy == None:
             raise 'Trying to write back from an empty RS'
-        if self.writing_back == False:
+        if self.writing_back == None:
             raise 'Trying to write back from an RS that\'s executing'
-        if self.CDB.is_empty() == False:
+        if self.CDB.is_empty() == None:
             self.writing_back = True
         else:
             self.CDB.add_result(self.Des, self.result)
