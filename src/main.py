@@ -50,7 +50,7 @@ def parse_units(file_name):
             for op in ops:
                 ent["OPS"].append(op)
             ent["cycles"] = ls[2]
-            ent["id"] = counter
+            ent["id"] = 'RS'+str(counter)
             counter+=1
             units.append(ent)
     return units
@@ -84,25 +84,31 @@ def usage():
     print("Params Units Program")      
 
 if __name__=="__main__":
+    """
     if len(sys.argv) < 4:
         usage()
         exit()
-    params = parse_parameters(sys.argv[1])
+        """
+    
+   # params = parse_parameters(sys.argv[1])
+    params = parse_parameters('configuration/Parameters.txt')
     print("Params:")
     print(params)
     #instructions = parse_instructions(sys.argv[2])
     #print("Instructions:")
     #print(instructions)
-    units = parse_units(sys.argv[2])
+   # units = parse_units(sys.argv[2])
+    units = parse_units("configuration/Units.txt")
     print("Units:")
     print(units)
     print("Program:")
-    program = parse_program(sys.argv[3])
+    program = parse_program("configuration/Program.txt")
+  #  program = parse_program(sys.argv[3])
     print(program)
     print()
     print()
-
+    
     CPU = CPU(params, units)
     CPU.run(program)
-    exit()
+   # exit()
 

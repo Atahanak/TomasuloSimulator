@@ -5,8 +5,8 @@ class FunctionalUnit:
         self.ID = None
         self.type = None
         self.Executing = False
-        self.cycles_left = cycles
-        self.total_cycles = cycles
+        self.cycles_left = int(cycles)
+        self.total_cycles = int(cycles)
     
     def begin_executing(self, typ, o1, o2, NextAddress = False):
         if self.Executing == True:
@@ -14,15 +14,19 @@ class FunctionalUnit:
         self.type = typ
         self.operand1 = o1
         self.operand2 = o2
-        self.total_cycles = self.cycles_left-1
+        self.cycles_left = self.total_cycles-1
         self.result = 0
-        if (self.type == operations[0]): self.result = self.operand1+self.operand2
-        if (self.type == operations[2]): self.result = self.operand1-self.operand2
-        if (self.type == operations[3]): self.result = self.operand1*self.operand2
-        if (self.type == operations[4]): self.result = self.operand1/self.operand2
-        if (self.type == operations[5]): self.result = self.operand1
-        if (self.type == operations[6]): self.result = True if self.operand1 >= self.operand2 else NextAddress
+        if (self.type == operations[0]): self.result = float(self.operand1)+float(self.operand2)
+        if (self.type == operations[1]): self.result = float(self.operand1)-float(self.operand2)
+        if (self.type == operations[2]): self.result = float(self.operand1)*float(self.operand2)
+        if (self.type == operations[3]): self.result = float(self.operand1)/float(self.operand2)
+        if (self.type == operations[4]): self.result = float(self.operand1)
+        if (self.type == operations[5]): self.result = True if self.operand1 >= self.operand2 else NextAddress
         self.Executing = True
+        if self.cycles_left == 0:
+            return [True, self.result]
+        else:
+            return [False, False]
 
     def execute_cycle(self):
         if self.cycles_left == 0:
