@@ -68,8 +68,8 @@ class CPU:
         self.program = program
         end_of_program = self.get_end_of_program(program)
         cycle = 0
-        while self.program_counter <= end_of_program:# and cycle <10:
-
+        while self.program_counter <= end_of_program: # and cycle < 4:
+        
             instruction = self.program[self.program_counter]
             self.program_counter+= INSTRUCTION_SIZE
             # try to add it to the instruction window
@@ -77,7 +77,7 @@ class CPU:
             if not added_succesfully:
                 self.program_counter-= INSTRUCTION_SIZE
             elif instruction['INST'] in BRANCH_OPERATIONS:
-                self.program_counter = int(instruction['ADDR']) - INSTRUCTION_SIZE
+                self.program_counter = int(instruction['ADDR'])
 
             instruction = self.top_instruction_window()
             rs_empty = None
@@ -85,7 +85,18 @@ class CPU:
                 operation = instruction['INST'] 
                 rs_empty = self.find_empty_rs(operation)
             
-            for rs in self.RS: # EXCEPT THE GUY WHO JUST GOT ISSUED
+            for rs in self.RS: #write_back
+                if rs.is_writing_back():
+                    rs.write_back()
+            
+            jump_location = self.RB.update() #if flushed return back to branch address
+            if jump_location is not None:
+                self.program_counter = jump_location
+
+            for rs in self.RS: #execute
+                if rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
+                    rs.execute()
+            for rs in self.RS: # issue
                 if rs is rs_empty:
                     #- get the register values (or ROB values) from RT, RB
                     self.remove_from_instruction_window()
@@ -94,10 +105,13 @@ class CPU:
                     if 'OP1' in list(instruction.keys()):
                         op1 = instruction['OP1']
                         if op1.startswith('R'):
-
                             if self.RT[op1]['reorder'] is not None:
-                                issue_object['Qj'] = self.RT[op1]['reorder']
-                                issue_object['Vj'] = None
+                                if self.RB[self.RT[op1]['reorder']]["value"] != None:
+                                    issue_object['Vj'] = self.RB[self.RT[op1]['reorder']]["value"]
+                                    issue_object['Qj'] = None
+                                else:
+                                    issue_object['Qj'] = self.RT[op1]['reorder']
+                                    issue_object['Vj'] = None
                             else:
                                 issue_object['Vj'] = self.RT[op1]['value']
                                 issue_object['Qj'] = None
@@ -112,8 +126,12 @@ class CPU:
                         op2 = instruction['OP2'] 
                         if op2.startswith('R'):
                             if self.RT[op2]['reorder'] is not None:
-                                issue_object['Qk'] = self.RT[op2]['reorder']
-                                issue_object['Vk'] = None
+                                if self.RB[self.RT[op2]['reorder']]["value"] != None:
+                                    issue_object['Vk'] = self.RB[self.RT[op2]['reorder']]["value"]
+                                    issue_object['Qk'] = None
+                                else:
+                                    issue_object['Qk'] = self.RT[op2]['reorder']
+                                    issue_object['Vk'] = None
                             else:
                                 issue_object['Vk'] = self.RT[op2]['value']
                                 issue_object['Qk'] = None
@@ -126,10 +144,10 @@ class CPU:
 
                     if 'DEST' in list(instruction.keys()):
                         dest = instruction['DEST']
-                        rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
-                        issue_object['Des'] = rob_dest
                     else : 
-                        issue_object['Dest'] = None
+                        issue_object['Des'] = None    
+                    rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
+                    issue_object['Des'] = rob_dest
                     if operation in BRANCH_OPERATIONS:
                         issue_object['Addr'] = self.program_counter
                     else:
@@ -138,29 +156,23 @@ class CPU:
                     #       - tell register which ROB it is assigned / handled by ROB
                     #       - Issue the instruction to the RS
                     rs.issue_to_RS(issue_object['op'], issue_object['Qj'], issue_object['Qk'], issue_object['Vj'], issue_object['Vk'], issue_object['Des'], issue_object['Addr'])
-                elif rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
-                    rs.execute()
-                elif rs.is_writing_back(): #write back
-                    rs.write_back()
-            
-            jump_location = self.RB.update() #if flushed return back to branch address
-            if jump_location is not None:
-                self.program_counter = jump_location
+
             self.RB.commit()
             self.printReport(cycle)
-            self.cdb.clear_cbd()
             cycle+=1
+            self.cdb.clear_cbd()
     
     def printInstructionWindow(self):
         print("Instruction Window")
         for instruction in self.instruction_window:
             o = instruction["INST"]
+            if 'DEST' in list(instruction.keys()):
+                o = o + " " + instruction["DEST"] + ","
             if 'OP1' in list(instruction.keys()):
                 o = o + " " + instruction["OP1"] + ","
             if 'OP2' in list(instruction.keys()):
-                o = o + " " + instruction["OP2"] + ","
-            if 'DEST' in list(instruction.keys()):
-                o = o + " " + instruction["DEST"]
+                o = o + " " + instruction["OP2"]
+
             print(o)
 
     def printReport(self, cycle):

@@ -66,12 +66,14 @@ class ReservationStation:
         else:
             if (self.Qj != None):
                 value = self.CDB.get_result(self.Qj)
-                if value != None: self.Vj = value
-                self.Qj = None
+                if value != None: 
+                    self.Vj = value
+                    self.Qj = None
             if (self.Qk != None):
                 value = self.CDB.get_result(self.Qk)
-                if value != None: self.Vk = value
-                self.Qk = None
+                if value != None: 
+                    self.Vk = value
+                    self.Qk = None
             if self.Qj == None and self.Qk == None:
                 next_address = False
                 if self.Op in BRANCH_OPERATIONS:

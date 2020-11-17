@@ -27,7 +27,7 @@ class CommonDataBus:
         #return False
         if rob_id == self.ROB_ID:
             return self.Value
-        return False
+        return None
     
     def clear_cbd(self):
         self.Full = False
