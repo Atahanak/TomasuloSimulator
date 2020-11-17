@@ -48,19 +48,20 @@ class ReorderBuffer:
 
     def update(self):
         if self.CDB.Full:
-            self.table[self.robid_2_idx(self.CDB.ROB_ID)]["value"] = self.CDB.Value
-
+            curr_rob = self.robid_2_idx(self.CDB.ROB_ID)
+            self.table[curr_rob]["value"] = self.CDB.Value
+            if self.table[self.head]["operation"] in BRANCH_OPERATIONS:
+                if self.table[self.head]["value"] != True: #flush entries between head and tail
+                    self.flush(curr_rob + 1)
+                    return self.table[self.head]["value"]
+        return None
 
     def commit(self):
         if self.table[self.head]["value"] is not None:
-            if self.table[self.head]["operation"] in BRANCH_OPERATIONS and self.table[self.head]["value"] != True: #flush entries between head and tail
-                self.flush(self.head + 1)
-                return self.table[self.head]["value"]
-            else:
+            if self.table[self.head]["value"] is not True:
                 self.register_table.updateRegister(self.table[self.head]["dest"], self.table[self.head]["value"])
             self.table[self.head] = self.rob_entry
             self.head = (self.head + 1) % self.size #update head in a circular fashion
-        return None
 
     def flush(self, start):
         end = self.tail
@@ -68,6 +69,7 @@ class ReorderBuffer:
             end += self.size - self.head
         for i in range(start, end):
             self.table[i % self.size] = self.rob_entry
+        self.tail = start
 
 
 if __name__=="__main__":

@@ -5,13 +5,12 @@ from ReservationStation import ReservationStation as RS
 from Constants import BRANCH_OPERATIONS
 INSTRUCTION_SIZE = 4
 class CPU:
-    def __init__(self, params, instructions, units, program):
+    def __init__(self, params, instructions, units):
         self.cdb = CDB()
         self.RS = []
         self.construct_reservation_stations(units)
         self.RT = RT(params['number_of_registers'])
         self.RB = RB(len(self.RS), self.RT,self.cdb)
-        self.program = program
         self.program_counter = 0
         self.instruction_window = []
         self.instruction_window_size = int(units['instruction_window_size'])
@@ -54,7 +53,10 @@ class CPU:
                 return rs
         return None
 
-    def run(self):
+    def get_end_of_program(self, program):
+        return max(program.keys())
+
+    def run(self, program):
         # fetch the next instruction from the program
         # TODO FIGURE OUT LOOP
         #while (some condition telling us program is done):
@@ -62,75 +64,79 @@ class CPU:
         #       - ask them to read the CBD 
         #       - ask them to execute or update cdb
         # TODO FINISH LOOP
+        self.program_counter = 0
+        self.program = program
+        end_of_program = self.get_end_of_program(program)
 
-        instruction = self.program[self.program_counter]
-        self.program_counter+= INSTRUCTION_SIZE
-        # try to add it to the instruction window
-        added_succesfully = self.add_to_instruction_window(instruction)
-        if not added_succesfully:
-            self.program_counter-= INSTRUCTION_SIZE
-        elif instruction['INST'] in BRANCH_OPERATIONS:
-            self.program_counter = int(instruction['DEST']) - INSTRUCTION_SIZE
+        while self.program_counter <= end_of_program:
 
-        instruction = self.top_instruction_window()
-        rs_empty = None
-        if instruction is not None and not self.RB.is_full():
-            operation = instruction['INST'] 
-            rs_empty = self.find_empty_rs(operation)
-        
-        for rs in self.RS: # EXCEPT THE GUY WHO JUST GOT ISSUED
-            if rs is rs_empty:
-                #- get the register values (or ROB values) from RT, RB
-                self.remove_from_instruction_window()
+            instruction = self.program[self.program_counter]
+            self.program_counter+= INSTRUCTION_SIZE
+            # try to add it to the instruction window
+            added_succesfully = self.add_to_instruction_window(instruction)
+            if not added_succesfully:
+                self.program_counter-= INSTRUCTION_SIZE
+            elif instruction['INST'] in BRANCH_OPERATIONS:
+                self.program_counter = int(instruction['DEST']) - INSTRUCTION_SIZE
+
+            instruction = self.top_instruction_window()
+            rs_empty = None
+            if instruction is not None and not self.RB.is_full():
                 operation = instruction['INST'] 
-                issue_object = {'op': operation}
-                if 'OP1' in list(instruction.keys()):
-                    op1 = instruction['OP1'] 
-                    if self.RT[op1]['reorder'] is not None:
-                        issue_object['Qj'] = self.RT[op1]['reorder']
-                        issue_object['Vj'] = None
+                rs_empty = self.find_empty_rs(operation)
+            
+            for rs in self.RS: # EXCEPT THE GUY WHO JUST GOT ISSUED
+                if rs is rs_empty:
+                    #- get the register values (or ROB values) from RT, RB
+                    self.remove_from_instruction_window()
+                    operation = instruction['INST'] 
+                    issue_object = {'op': operation}
+                    if 'OP1' in list(instruction.keys()):
+                        op1 = instruction['OP1'] 
+                        if self.RT[op1]['reorder'] is not None:
+                            issue_object['Qj'] = self.RT[op1]['reorder']
+                            issue_object['Vj'] = None
+                        else:
+                            issue_object['Vj'] = self.RT[op1]['value']
+                            issue_object['Qj'] = None
+                    if 'OP2' in list(instruction.keys()):
+                        op2 = instruction['OP2'] 
+                        if self.RT[op2]['reorder'] is not None:
+                            issue_object['Qk'] = self.RT[op2]['reorder']
+                            issue_object['Vk'] = None
+                        else:
+                            issue_object['Vk'] = self.RT[op2]['value']
+                            issue_object['Qk'] = None
+                    if 'DEST' in list(instruction.keys()):
+                        dest = instruction['DEST']
+                        rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
+                        issue_object['Des'] = rob_dest
+                    else : 
+                        issue_object['Dest'] = None
+                    if operation in BRANCH_OPERATIONS:
+                        issue_object['Addr'] = self.program_counter
                     else:
-                        issue_object['Vj'] = self.RT[op1]['value']
-                        issue_object['Qj'] = None
-                if 'OP2' in list(instruction.keys()):
-                    op2 = instruction['OP2'] 
-                    if self.RT[op2]['reorder'] is not None:
-                        issue_object['Qk'] = self.RT[op2]['reorder']
-                        issue_object['Vk'] = None
-                    else:
-                        issue_object['Vk'] = self.RT[op2]['value']
-                        issue_object['Qk'] = None
-                if 'DEST' in list(instruction.keys()):
-                    dest = instruction['DEST']
-                    rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
-                    issue_object['Des'] = rob_dest
-                else : 
-                    issue_object['Dest'] = None
-                if operation in BRANCH_OPERATIONS:
-                    issue_object['Addr'] = self.program_counter
-                else:
-                    issue_object['Addr'] = None
+                        issue_object['Addr'] = None
 
-                #       - tell register which ROB it is assigned / handled by ROB
-                #       - Issue the instruction to the RS
-                rs.issue_to_RS(issue_object['op'], issue_object['Qj'], issue_object['Qk'], issue_object['Vj'], issue_object['Vk'], issue_object['Des'], issue_object['Addr'])
-            elif rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
-                rs.execute()
-            elif rs.is_writing_back(): #write back
-                rs.write_back()
-        
-        self.RB.update() 
-        jump_location = self.RB.commit() #if flushed return back to branch address
-        if jump_location is not None:
-            self.program_counter = jump_location
-
-        # - print out the cycle info
+                    #       - tell register which ROB it is assigned / handled by ROB
+                    #       - Issue the instruction to the RS
+                    rs.issue_to_RS(issue_object['op'], issue_object['Qj'], issue_object['Qk'], issue_object['Vj'], issue_object['Vk'], issue_object['Des'], issue_object['Addr'])
+                elif rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
+                    rs.execute()
+                elif rs.is_writing_back(): #write back
+                    rs.write_back()
+            
+            jump_location = self.RB.update() #if flushed return back to branch address
+            if jump_location is not None:
+                self.program_counter = jump_location
+            self.RB.commit()
+            self.printReport()
     
     def printInstructionWindow(self):
         print("Instruction Window")
 
     
-    def print(self):
+    def printReport(self):
         self.printInstructionWindow()
         self.RT.printTable()
 
