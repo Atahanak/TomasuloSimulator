@@ -7,6 +7,9 @@ class RegisterTable:
 
     def rid_2_str(self, rid):
         return "R"+str(rid)
+    
+    def rid_2_int(self, rid):
+        return int(rid.split("R")[1])
 
     def printTable(self):
         print("Registers")
@@ -20,7 +23,10 @@ class RegisterTable:
         self.table[register_id]["reorder"] = None
     
     def reserveRegister(self, register_id, rob_id):
-        self.table[register_id]["reorder"] = rob_id
+        self.table[self.rid_2_int(register_id)]["reorder"] = rob_id
+    
+    def __getitem__(self, rid):
+        return self.table[self.rid_2_int(rid)]
 
 if __name__=="__main__":
     registers = RegisterTable(4)
