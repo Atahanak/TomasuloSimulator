@@ -35,7 +35,7 @@ class ReorderBuffer:
                 p = p + " " + r["operation"] + " " + str(r["dest"]) + " " + str(r["value"])
             if index == self.head:
                 p += " (H)"
-            if index == (self.tail-1) % self.size:
+            if index == (self.tail) % self.size:
                 p += " (T)"
             print(p)
 
@@ -58,13 +58,13 @@ class ReorderBuffer:
             if self.table[curr_rob]["operation"] in BRANCH_OPERATIONS:
                 self.table[curr_rob]["value"] = self.CDB.Value
                 if self.table[curr_rob]["value"] != True: #flush entries between head and tail
-                    self.flush((curr_rob + 1)%self.size)
+                    flushed = self.flush((curr_rob + 1)%self.size)
                     print("i flush")
-                    return self.CDB.Value
+                    return (self.CDB.Value, flushed)
             else:
                 self.table[curr_rob]["value"] = self.CDB.Value
 
-        return None
+        return (None,None)
 
     def commit(self):
         if self.table[self.head]["value"] is not None:
@@ -74,13 +74,18 @@ class ReorderBuffer:
             self.head = (self.head + 1) % self.size #update head in a circular fashion
 
     def flush(self, start):
+        flushed = []
         end = self.tail
         if end < start:
             end += self.size - self.head
         for i in range(start, end):
+            flushed.append(self.robid_2_str(i%self.size))
+            if self.table[i%self.size]['dest'] is not None:
+                if self.register_table[self.table[i%self.size]['dest']]['reorder'] == self.robid_2_str(i%self.size):
+                    self.register_table[self.table[i%self.size]['dest']]['reorder'] = None
             self.table[i % self.size] = dict(self.rob_entry)
         self.tail = start
-
+        return flushed
 
 
     def __getitem__(self, rid):
