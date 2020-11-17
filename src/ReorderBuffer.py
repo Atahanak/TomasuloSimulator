@@ -1,5 +1,5 @@
 from RegisterTable import RegisterTable as RT
-from Constants import BRANCH_OPERATIONS
+from constants import BRANCH_OPERATIONS
 #from CommonDataBus
 
 class ReorderBuffer:
