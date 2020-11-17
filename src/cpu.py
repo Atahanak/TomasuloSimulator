@@ -90,10 +90,13 @@ class CPU:
                 if rs.is_writing_back():
                     rs.write_back()
             
-            jump_location = self.RB.update() #if flushed return back to branch address
+            jump_location, flushed = self.RB.update() #if flushed return back to branch address
             if jump_location is not None:
                 self.program_counter = jump_location + INSTRUCTION_SIZE
                 self.instruction_window = []
+                for rs in self.RS:
+                    if rs.Des in flushed:
+                        rs.reset_RS()
 
             for rs in self.RS: #execute
                 if rs.is_executing() and not rs.is_writing_back(): #execute rs.is_executing():
