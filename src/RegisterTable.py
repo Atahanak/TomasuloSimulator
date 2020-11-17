@@ -24,9 +24,10 @@ class RegisterTable:
             print(p) #needs update
         #print(self.table)
 
-    def updateRegister(self, register_id, val):
+    def updateRegister(self, register_id, val, rob_id):
         self.table[self.rid_2_int(register_id)]["value"] = val
-        self.table[self.rid_2_int(register_id)]["reorder"] = None
+        if rob_id == self.table[self.rid_2_int(register_id)]["reorder"]:
+            self.table[self.rid_2_int(register_id)]["reorder"] = None
     
     def reserveRegister(self, register_id, rob_id):
         self.table[self.rid_2_int(register_id)]["reorder"] = rob_id

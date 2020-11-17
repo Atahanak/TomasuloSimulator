@@ -30,10 +30,10 @@ class ReorderBuffer:
             p = self.robid_2_str(index) + ":" 
             if r["operation"] is not None:
                 p = p + " " + r["operation"] + " " + r["dest"] + " " + str(r["value"])
-                if index == self.head:
-                    p += " (H)"
-                if index == self.tail:
-                    p += " (T)"
+            if index == self.head:
+                p += " (H)"
+            if index == (self.tail-1) % self.size:
+                p += " (T)"
             print(p)
 
     def get_instruction(self, operation, dest):
@@ -59,7 +59,7 @@ class ReorderBuffer:
     def commit(self):
         if self.table[self.head]["value"] is not None:
             if self.table[self.head]["value"] is not True:
-                self.register_table.updateRegister(self.table[self.head]["dest"], self.table[self.head]["value"])
+                self.register_table.updateRegister(self.table[self.head]["dest"], self.table[self.head]["value"], self.robid_2_str(self.head))
             self.table[self.head] = dict(self.rob_entry)
             self.head = (self.head + 1) % self.size #update head in a circular fashion
 
@@ -71,7 +71,5 @@ class ReorderBuffer:
             self.table[i % self.size] = dict(self.rob_entry)
         self.tail = start
 
-
-if __name__=="__main__":
-    rob = ReorderBuffer(4)
-    rob.printTable()
+    def __getitem__(self, rid):
+        return self.table[self.robid_2_idx(rid)]
