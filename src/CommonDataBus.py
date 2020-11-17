@@ -35,3 +35,6 @@ class CommonDataBus:
         self.Value = None
         #self.Capacity = capacity
         #self.slots = []
+    def printCommonDataBus(self):
+        if self.Full == True:
+            print(str(float(self.Value))+"\t"+self.ROB_ID)
