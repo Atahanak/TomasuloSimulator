@@ -1,4 +1,5 @@
-operations = ['ADD', 'SUB', 'MUL','DIV', 'LD', 'BG']
+from constants import ISA as operations
+#operations = ['ADD', 'SUB', 'MUL','DIV', 'LD', 'BGE']
 class FunctionalUnit:
     def __init__(self, cycles):
         self.ID = None
@@ -20,7 +21,7 @@ class FunctionalUnit:
         if (self.type == operations[3]): self.result = self.operand1*self.operand2
         if (self.type == operations[4]): self.result = self.operand1/self.operand2
         if (self.type == operations[5]): self.result = self.operand1
-        if (self.type == operations[6]): self.result = self.operand1 >= self.operand2
+        if (self.type == operations[6]): self.result = True if self.operand1 >= self.operand2 else NextAddress
         self.Executing = True
 
     def execute_cycle(self):

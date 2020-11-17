@@ -1,0 +1,2 @@
+ISA = ['ADD', 'SUB', 'MUL','DIV', 'LD', 'BGE']
+BRANCH_OPERATIONS = ["BGE", "BLE"]
