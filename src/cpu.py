@@ -2,10 +2,10 @@ from RegisterTable import RegisterTable as RT
 from ReorderBuffer import ReorderBuffer as RB
 from CommonDataBus import CommonDataBus as CDB
 from ReservationStation import ReservationStation as RS
-from Constants import BRANCH_OPERATIONS
+from constants import BRANCH_OPERATIONS
 INSTRUCTION_SIZE = 4
 class CPU:
-    def __init__(self, params, instructions, units):
+    def __init__(self, params, units):
         self.cdb = CDB()
         self.RS = []
         self.construct_reservation_stations(units)
@@ -13,7 +13,7 @@ class CPU:
         self.RB = RB(len(self.RS), self.RT,self.cdb)
         self.program_counter = 0
         self.instruction_window = []
-        self.instruction_window_size = int(units['instruction_window_size'])
+        self.instruction_window_size = int(params['instruction_window_size'])
 
     def construct_reservation_stations(self, units):
         for unit in units:
@@ -92,7 +92,7 @@ class CPU:
                     operation = instruction['INST'] 
                     issue_object = {'op': operation}
                     if 'OP1' in list(instruction.keys()):
-                        op1 = instruction['OP1'] 
+                        op1 = instruction['OP1']
                         if self.RT[op1]['reorder'] is not None:
                             issue_object['Qj'] = self.RT[op1]['reorder']
                             issue_object['Vj'] = None
@@ -153,9 +153,12 @@ class CPU:
         print()
         self.RT.printTable()
         print()
-        self.RS.printRS()
+        print("Reservation Stations")
+        for rs in self.RS:
+            rs.printReservationStation()
         print()
         self.RB.printTable()
         print()
-        self.RS.printCDB()
+        print("Common Data Bus")
+        self.cdb.printCommonDataBus()
         print()

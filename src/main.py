@@ -1,4 +1,5 @@
 import sys
+from cpu import CPU
 
 def parse_parameters(file_name):
     params = {}
@@ -9,7 +10,7 @@ def parse_parameters(file_name):
             words = line.split(" ")
             params[words[0][:-1]] = int(words[1][:-1])
     return params
-
+"""
 def parse_instructions(file_name):
     instructions = []
     f = open(file_name, "r")
@@ -33,7 +34,7 @@ def parse_instructions(file_name):
                 inst["OP2"] = ls[3]
             instructions.append(inst)
     return instructions
-
+"""
 def parse_units(file_name):
     units = []
     f = open(file_name, "r")
@@ -63,11 +64,11 @@ def parse_program(file_name):
             if line_c != "":
                 ls = line_c.split()
                 inst = {}
-                address = ls[0][:-1]
+                address = int(ls[0][:-1])
                 inst["INST"] = ls[1]
                 if inst["INST"] == "LD":
                     inst["DEST"] = ls[2][:-1] # remove comma
-                    inst["VALUE"] = ls[3]
+                    inst["OP1"] = ls[3]
                 elif inst["INST"] == "BGE": #add other branch instructions
                     inst["OP1"] = ls[2][:-1]
                     inst["OP2"] = ls[3][:-1]
@@ -77,23 +78,31 @@ def parse_program(file_name):
                     inst["OP1"] = ls[3][:-1]
                     inst["OP2"] = ls[4]
                 program[address] = inst
-    return program            
+    return program      
+
+def usage():
+    print("Params Units Program")      
 
 if __name__=="__main__":
+    if len(sys.argv) < 4:
+        usage()
+        exit()
     params = parse_parameters(sys.argv[1])
     print("Params:")
     print(params)
-    instructions = parse_instructions(sys.argv[2])
-    print("Instructions:")
-    print(instructions)
-    units = parse_units(sys.argv[3])
+    #instructions = parse_instructions(sys.argv[2])
+    #print("Instructions:")
+    #print(instructions)
+    units = parse_units(sys.argv[2])
     print("Units:")
     print(units)
     print("Program:")
-    program = parse_program(sys.argv[4])
+    program = parse_program(sys.argv[3])
     print(program)
+    print()
+    print()
 
-    #CPU = CPU(params, instructions, units, program)
-    #CPU.run()
+    CPU = CPU(params, units)
+    CPU.run(program)
     exit()
 
