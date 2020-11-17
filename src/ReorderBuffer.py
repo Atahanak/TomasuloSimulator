@@ -18,6 +18,9 @@ class ReorderBuffer:
     def is_full(self):
         return self.head == self.tail and self.table[self.head]["operation"] is not None
 
+    def is_empty(self):
+        return self.head == self.tail and self.table[self.head]["operation"] is None
+
     def robid_2_str(self, rid):
         return "ROB"+str(rid)
 
@@ -52,10 +55,12 @@ class ReorderBuffer:
     def update(self):
         if self.CDB.Full:
             curr_rob = self.robid_2_idx(self.CDB.ROB_ID)
-            if self.table[self.head]["operation"] in BRANCH_OPERATIONS:
-                if self.table[self.head]["value"] != True: #flush entries between head and tail
-                    self.flush(curr_rob + 1)
-                    return self.table[self.head]["value"]
+            if self.table[curr_rob]["operation"] in BRANCH_OPERATIONS:
+                self.table[curr_rob]["value"] = self.CDB.Value
+                if self.table[curr_rob]["value"] != True: #flush entries between head and tail
+                    self.flush((curr_rob + 1)%self.size)
+                    print("i flush")
+                    return self.CDB.Value
             else:
                 self.table[curr_rob]["value"] = self.CDB.Value
 
@@ -75,6 +80,7 @@ class ReorderBuffer:
         for i in range(start, end):
             self.table[i % self.size] = dict(self.rob_entry)
         self.tail = start
+
 
 
     def __getitem__(self, rid):
