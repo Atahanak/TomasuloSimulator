@@ -13,7 +13,7 @@ class ReorderBuffer:
         self.CDB = CDB
         self.table = []
         for i in range(self.size):
-            self.table.append(self.rob_entry)
+            self.table.append(dict(self.rob_entry))
 
     def is_full(self):
         return self.head == self.tail and self.table[self.head]["operation"] is not None
@@ -38,13 +38,13 @@ class ReorderBuffer:
 
     def get_instruction(self, operation, dest):
         if self.is_full(): #check if rob is available
-            return None #table is full
+            raise 'you messed up'
         else:
             self.table[self.tail]["operation"] = operation
             self.table[self.tail]["dest"] = dest
             self.register_table.reserveRegister(dest, self.robid_2_str(self.tail))
             self.tail = (self.tail + 1) % self.size #update tail in a circular fashion
-            return self.robid_2_str(self.tail-1)
+            return self.robid_2_str((self.tail-1)%self.size)
 
     def update(self):
         if self.CDB.Full:
@@ -60,7 +60,7 @@ class ReorderBuffer:
         if self.table[self.head]["value"] is not None:
             if self.table[self.head]["value"] is not True:
                 self.register_table.updateRegister(self.table[self.head]["dest"], self.table[self.head]["value"])
-            self.table[self.head] = self.rob_entry
+            self.table[self.head] = dict(self.rob_entry)
             self.head = (self.head + 1) % self.size #update head in a circular fashion
 
     def flush(self, start):
@@ -68,7 +68,7 @@ class ReorderBuffer:
         if end < start:
             end += self.size - self.head
         for i in range(start, end):
-            self.table[i % self.size] = self.rob_entry
+            self.table[i % self.size] = dict(self.rob_entry)
         self.tail = start
 
 

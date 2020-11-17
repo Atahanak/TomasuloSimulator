@@ -51,14 +51,14 @@ class ReservationStation:
     def execute(self):
         if self.writing_back:
             raise 'trying to execute an RS that\'s executing'
-        if self.Busy == None:
+        if self.Busy == False:
             raise 'trying to execute an RS that\'s free'
         # If awaiting data bus, will start by trying to broadcast output 
         if self.FU.is_executing():
             # We must execute an additional cycle
             result = self.FU.execute_cycle()
             #if done executing
-            if result[0] !=None:
+            if result[0] !=False:
                 self.result = result[1]
                 self.FU.reset_FU()
                 self.writing_back = True
@@ -72,20 +72,25 @@ class ReservationStation:
                 value = self.CDB.get_result(self.Qk)
                 if value != None: self.Vk = value
                 self.Qk = None
-            if self.Qj != None and self.Qk != None:
+            if self.Qj == None and self.Qk == None:
                 next_address = False
                 if self.Op in BRANCH_OPERATIONS:
                     next_address = self.Addr
-                self.FU.begin_executing(self.Op, self.Vj, self.Vk, next_address)
+                result = self.FU.begin_executing(self.Op, self.Vj, self.Vk, next_address)
+                #if done executing
+                if result[0] !=False:
+                    self.result = result[1]
+                    self.FU.reset_FU()
+                    self.writing_back = True
 
     def write_back(self):
-        if self.Busy == None:
+        if self.Busy == False:
             raise 'Trying to write back from an empty RS'
-        if self.writing_back == None:
+        if self.writing_back == False:
             raise 'Trying to write back from an RS that\'s executing'
-        if self.CDB.is_empty() == None:
-            self.writing_back = True
-        else:
+        print('writing back')
+        if self.CDB.is_empty():
+            print('why you write back')
             self.CDB.add_result(self.Des, self.result)
             self.reset_RS()
 
@@ -99,9 +104,18 @@ class ReservationStation:
             return
         
         print(self.Op+'\t', end='')
-
-        op1 = self.Qj if self.Qj != None else str(float(self.Vj))
-        op2 = self.Qk if self.Qk != None else str(float(self.Vk))
+        if self.Vj is not None:
+            op1 = str(float(self.Vj))
+        elif self.Qj is not None:
+            op1 = self.Qj
+        else:
+            op1 = ''
+        if self.Vk is not None:
+            op2 = str(float(self.Vk))
+        elif self.Qk is not None:
+            op2 = self.Qk
+        else:
+            op2 = ''
         print(op1+'\t', end='')
         print(op2+'\t', end='')
         print(self.Des)

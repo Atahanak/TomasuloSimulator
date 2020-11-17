@@ -68,7 +68,7 @@ class CPU:
         self.program = program
         end_of_program = self.get_end_of_program(program)
         cycle = 0
-        while self.program_counter <= end_of_program:
+        while self.program_counter <= end_of_program:# and cycle <10:
 
             instruction = self.program[self.program_counter]
             self.program_counter+= INSTRUCTION_SIZE
@@ -77,7 +77,7 @@ class CPU:
             if not added_succesfully:
                 self.program_counter-= INSTRUCTION_SIZE
             elif instruction['INST'] in BRANCH_OPERATIONS:
-                self.program_counter = int(instruction['DEST']) - INSTRUCTION_SIZE
+                self.program_counter = int(instruction['ADDR']) - INSTRUCTION_SIZE
 
             instruction = self.top_instruction_window()
             rs_empty = None
@@ -93,20 +93,37 @@ class CPU:
                     issue_object = {'op': operation}
                     if 'OP1' in list(instruction.keys()):
                         op1 = instruction['OP1']
-                        if self.RT[op1]['reorder'] is not None:
-                            issue_object['Qj'] = self.RT[op1]['reorder']
-                            issue_object['Vj'] = None
+                        if op1.startswith('R'):
+
+                            if self.RT[op1]['reorder'] is not None:
+                                issue_object['Qj'] = self.RT[op1]['reorder']
+                                issue_object['Vj'] = None
+                            else:
+                                issue_object['Vj'] = self.RT[op1]['value']
+                                issue_object['Qj'] = None
                         else:
-                            issue_object['Vj'] = self.RT[op1]['value']
+                            issue_object['Vj'] = int(op1)
                             issue_object['Qj'] = None
+                    else:
+                            issue_object['Vj'] = None
+                            issue_object['Qj'] = None
+
                     if 'OP2' in list(instruction.keys()):
                         op2 = instruction['OP2'] 
-                        if self.RT[op2]['reorder'] is not None:
-                            issue_object['Qk'] = self.RT[op2]['reorder']
-                            issue_object['Vk'] = None
+                        if op2.startswith('R'):
+                            if self.RT[op2]['reorder'] is not None:
+                                issue_object['Qk'] = self.RT[op2]['reorder']
+                                issue_object['Vk'] = None
+                            else:
+                                issue_object['Vk'] = self.RT[op2]['value']
+                                issue_object['Qk'] = None
                         else:
-                            issue_object['Vk'] = self.RT[op2]['value']
+                            issue_object['Vk'] = int(op2)
                             issue_object['Qk'] = None
+                    else:
+                            issue_object['Vk'] = None
+                            issue_object['Qk'] = None
+
                     if 'DEST' in list(instruction.keys()):
                         dest = instruction['DEST']
                         rob_dest = self.RB.get_instruction(operation, dest) # using the register ID to write to, will reserve an ROB entry
@@ -131,6 +148,7 @@ class CPU:
                 self.program_counter = jump_location
             self.RB.commit()
             self.printReport(cycle)
+            self.cdb.clear_cbd()
             cycle+=1
     
     def printInstructionWindow(self):
