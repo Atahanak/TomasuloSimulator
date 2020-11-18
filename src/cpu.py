@@ -25,13 +25,6 @@ class CPU:
             rs = RS(unit["id"], unit["OPS"], unit["cycles"], self.cdb)
             self.RS.append(rs)
 
-    # can't add past size
-    def add_to_instruction_window(self, instruction):
-        if len(self.instruction_window) >= self.instruction_window_size:
-            return False
-        else:
-            self.instruction_window.append(instruction)
-            return True
 
     def find_empty_rs(self, RS, op):
         for rs in RS:
@@ -93,7 +86,6 @@ class CPU:
                         op1 = instruction.operand1
                         op2 = instruction.operand2
                         destination = instruction.destination
-                        leap_address = instruction.leap_address
                         address = instruction.address
                         issue_object = {"op": operation}
                         if op1:
@@ -144,12 +136,8 @@ class CPU:
                             issue_object["Vk"] = None
                             issue_object["Qk"] = None
 
-                        if destination:
-                            dest = destination
-                        else:
-                            issue_object["Des"] = None
                         rob_dest = RB.get_instruction(
-                            operation, dest
+                            operation, destination
                         )  # using the register ID to write to, will reserve an ROB entry
                         issue_object["Des"] = rob_dest
                         if operation in BRANCH_OPERATIONS:
@@ -157,8 +145,6 @@ class CPU:
                         else:
                             issue_object["Addr"] = None
 
-                        #       - tell register which ROB it is assigned / handled by ROB
-                        #       - Issue the instruction to the RS
                         rs.issue_to_RS(
                             issue_object["op"],
                             issue_object["Qj"],
@@ -197,11 +183,16 @@ class CPU:
             # Execute
             self.execute_step(self.RS)
 
+            # Issue instruction
             self.issue_instruction_step(self.instruction_window, self.RB, self.RT, self.RS, jump_location)
 
+            # Commit ROB to register file
             self.RB.commit()
+            
             self.printReport(cycle)
             cycle += 1
+
+            # Clear CDB
             self.cdb.clear_cbd()
 
     def printReport(self, cycle):
