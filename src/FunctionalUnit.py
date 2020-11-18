@@ -1,4 +1,4 @@
-from constants import ISA as operations
+from constants import ISA 
 #operations = ['ADD', 'SUB', 'MUL','DIV', 'LD', 'BGE']
 class FunctionalUnit:
     def __init__(self, cycles):
@@ -16,17 +16,7 @@ class FunctionalUnit:
         self.operand2 = o2
         self.cycles_left = self.total_cycles-1
         self.result = 0
-        if (self.type == operations[0]): self.result = float(self.operand1)+float(self.operand2)
-        if (self.type == operations[1]): self.result = float(self.operand1)-float(self.operand2)
-        if (self.type == operations[2]): self.result = float(self.operand1)*float(self.operand2)
-        if (self.type == operations[3]): self.result = float(self.operand1)/float(self.operand2)
-        if (self.type == operations[4]): self.result = float(self.operand1)
-        if (self.type == operations[5]): 
-            if self.operand1>=self.operand2:
-                self.result = True 
-            else:
-                self.result = NextAddress
-                print("i hate debuggers", self.result)
+        self.result = ISA[self.type](self.operand1, self.operand2, NextAddress)
         self.Executing = True
         if self.cycles_left == 0:
             return [True, self.result]
