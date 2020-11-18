@@ -56,6 +56,8 @@ class CPU:
     def get_end_of_program(self, program):
         return max(program.keys())
 
+    def is_ROB_empty(self):
+        return self.RB.is_empty()
     def run(self, program):
         # fetch the next instruction from the program
         # TODO FIGURE OUT LOOP
@@ -81,14 +83,14 @@ class CPU:
                 elif instruction['INST'] in BRANCH_OPERATIONS:
                     self.program_counter = int(instruction['ADDR'])
 
-                instruction = self.top_instruction_window()
-                if instruction is not None and not self.RB.is_full():
-                    operation = instruction['INST'] 
-                    rs_empty = self.find_empty_rs(operation)
             
             for rs in self.RS: #write_back
                 if rs.is_writing_back():
                     rs.write_back()
+            instruction = self.top_instruction_window()
+            if instruction is not None and not self.RB.is_full():
+                operation = instruction['INST'] 
+                rs_empty = self.find_empty_rs(operation)
             
             jump_location, flushed = self.RB.update() #if flushed return back to branch address
             if jump_location is not None:
@@ -165,6 +167,8 @@ class CPU:
 
             self.RB.commit()
             self.printReport(cycle)
+            if self.is_ROB_empty():
+                print("EMPTY ROB")
             cycle+=1
             self.cdb.clear_cbd()
     
