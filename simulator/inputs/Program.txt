@@ -1,5 +1,5 @@
 # ADDRESS: INSTRUCTION
-0:  LD  R0, 10
+0:  LD  R0, 0
 4:  MUL R2, R0, 2
 8:  MUL R1, R0, R0
 12: SUB R3, R1, R2

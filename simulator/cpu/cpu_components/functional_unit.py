@@ -1,4 +1,4 @@
-from constants import ISA
+from simulator.cpu.common.constants import ISA
 
 # operations = ['ADD', 'SUB', 'MUL','DIV', 'LD', 'BGE']
 class FunctionalUnit:
@@ -17,7 +17,7 @@ class FunctionalUnit:
         self.operand2 = o2
         self.cycles_left = self.total_cycles - 1
         self.result = 0
-        self.result = ISA[self.type](self.operand1, self.operand2, NextAddress)
+        self.result = ISA[self.type](self.operand1, self.operand2, NextAddress) #execute the respective operation
         self.Executing = True
         if self.cycles_left == 0:
             return [True, self.result]

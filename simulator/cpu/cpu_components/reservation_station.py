@@ -1,13 +1,13 @@
-import CommonDataBus
-import FunctionalUnit
-from constants import BRANCH_OPERATIONS
+from ..cpu_components.common_data_bus import CommonDataBus
+from ..cpu_components.functional_unit import FunctionalUnit
+from simulator.cpu.common.constants import BRANCH_OPERATIONS
 
 
 class ReservationStation:
     def __init__(self, name, typ, cycles, cdb):
         self.ID = name
         self.Types = typ
-        self.FU = FunctionalUnit.FunctionalUnit(cycles)
+        self.FU = FunctionalUnit(cycles)
         self.CDB = cdb  # the common data bus object to broadcast information to
         self.reset_RS()
 
@@ -127,7 +127,7 @@ class ReservationStation:
 
 
 if __name__ == "__main__":
-    cdd = CommonDataBus.CommonDataBus()
+    cdd = CommonDataBus()
     rs = ReservationStation("ROB0", ["ADD"], 2, cdd)
     rs.printReservationStation()
     rs.issue_to_RS("ADD", "ROB1", None, 0, 2, "ROB4")

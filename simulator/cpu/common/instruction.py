@@ -1,4 +1,4 @@
-from constants import BRANCH_OPERATIONS, ISA, FP_OPERATIONS, LOAD_OPERATIONS
+from ..common.constants import BRANCH_OPERATIONS, ISA, FP_OPERATIONS, LOAD_OPERATIONS
 
 
 class Instruction:

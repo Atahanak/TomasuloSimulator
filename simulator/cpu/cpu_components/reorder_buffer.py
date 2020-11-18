@@ -1,8 +1,5 @@
-from RegisterTable import RegisterTable as RT
-from constants import BRANCH_OPERATIONS
-
-# from CommonDataBus
-
+from .register_table import RegisterTable as RT
+from simulator.cpu.common.constants import BRANCH_OPERATIONS
 
 class ReorderBuffer:
     # dest: register ID i am writing to
@@ -72,15 +69,13 @@ class ReorderBuffer:
                     self.table[curr_rob]["value"] != True
                 ):  # flush entries between head and tail
                     flushed = self.flush((curr_rob + 1) % self.size)
-                    print("i flush")
                     return (self.CDB.Value, flushed)
             else:
                 self.table[curr_rob]["value"] = self.CDB.Value
-
         return (None, None)
 
     def commit(self):
-        if self.table[self.head]["value"] is not None:
+        if self.table[self.head]["value"] is not None: #check if head is empty
             if self.table[self.head]["operation"] not in BRANCH_OPERATIONS:
                 self.register_table.updateRegister(
                     self.table[self.head]["dest"],
@@ -97,14 +92,14 @@ class ReorderBuffer:
             end += self.size - self.head + 1
         for i in range(start, end):
             flushed.append(self.robid_2_str(i % self.size))
-            if self.table[i % self.size]["dest"] is not None:
+            if self.table[i % self.size]["dest"] is not None: 
                 if self.register_table[self.table[i % self.size]["dest"]][
                     "reorder"
-                ] == self.robid_2_str(i % self.size):
+                ] == self.robid_2_str(i % self.size): #check if register is reserved by this rob entry
                     self.register_table[self.table[i % self.size]["dest"]][
                         "reorder"
                     ] = None
-            self.table[i % self.size] = dict(self.rob_entry)
+            self.table[i % self.size] = dict(self.rob_entry) #flush entry
         self.tail = start
         return flushed
 

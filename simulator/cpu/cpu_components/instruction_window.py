@@ -1,4 +1,4 @@
-from Instruction import Instruction
+from simulator.cpu.common.instruction import Instruction
 
 
 class InstructionWindow:

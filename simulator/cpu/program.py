@@ -1,4 +1,4 @@
-from Instruction import Instruction as Instruction
+from simulator.cpu.common.instruction import Instruction as Instruction
 
 
 class Program:
