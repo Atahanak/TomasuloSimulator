@@ -1,6 +1,6 @@
 import sys
-from cpu import CPU
-
+from simulator.cpu.cpu import CPU
+import os.path
 
 def parse_parameters(file_name):
     params = {}
@@ -11,34 +11,6 @@ def parse_parameters(file_name):
             words = line.split(" ")
             params[words[0][:-1]] = int(words[1][:-1])
     return params
-
-
-"""
-def parse_instructions(file_name):
-    instructions = []
-    f = open(file_name, "r")
-    for line in f:
-        cs = line.find("#")
-        line_c = line[:cs].strip()
-        if line_c != "":
-            ls = line_c.split(" ")
-            inst = {}
-            inst["INST"] = ls[0]
-            if inst["INST"] == "LD":
-                inst["DEST"] = ls[1]
-                inst["VALUE"] = ls[2]
-            elif inst["INST"] == "BGE": #add other branch instructions
-                inst["OP1"] = ls[1]
-                inst["OP2"] = ls[2]
-                inst["ADDR"] = ls[3]
-            else:
-                inst["DEST"] = ls[1]
-                inst["OP1"] = ls[2]
-                inst["OP2"] = ls[3]
-            instructions.append(inst)
-    return instructions
-"""
-
 
 def parse_units(file_name):
     units = []
@@ -59,7 +31,6 @@ def parse_units(file_name):
             counter += 1
             units.append(ent)
     return units
-
 
 def parse_program(file_name):
     program = {}
@@ -87,36 +58,37 @@ def parse_program(file_name):
                 program[address] = inst
     return program
 
-
 def usage():
     print("Params Units Program")
 
-
-if __name__ == "__main__":
+def run():
+    
     """
     if len(sys.argv) < 4:
         usage()
         exit()
-        """
-
-    # params = parse_parameters(sys.argv[1])
-    params = parse_parameters("configuration/Parameters.txt")
+    """
+    
+    #params = parse_parameters(sys.argv[1])
+    my_path = os.path.abspath(os.path.dirname(__file__))
+    path = os.path.join(my_path, "inputs/Parameters.txt")
+    params = parse_parameters(path)
     print("Params:")
     print(params)
-    # instructions = parse_instructions(sys.argv[2])
-    # print("Instructions:")
-    # print(instructions)
-    # units = parse_units(sys.argv[2])
-    units = parse_units("configuration/Units.txt")
+
+    #units = parse_units(sys.argv[2])
+    path = os.path.join(my_path, "inputs/Units.txt")
+    units = parse_units(path)
     print("Units:")
     print(units)
+
+    #program = parse_program(sys.argv[3])
+    path = os.path.join(my_path, "inputs/Program.txt")
+    program = parse_program(path)
     print("Program:")
-    program = parse_program("configuration/Program.txt")
-    # program = parse_program(sys.argv[3])
     print(program)
     print()
     print()
 
-    CPU = CPU(params, units)
-    CPU.run(program)
-# exit()
+    cpu = CPU(params, units) #create the cpu object
+    cpu.run(program) #run program

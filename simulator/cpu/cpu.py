@@ -1,10 +1,10 @@
-from RegisterTable import RegisterTable as RT
-from ReorderBuffer import ReorderBuffer as RB
-from CommonDataBus import CommonDataBus as CDB
-from ReservationStation import ReservationStation as RS
-from constants import BRANCH_OPERATIONS
-from Program import Program as Program
-from InstructionWindow import InstructionWindow as InstructionWindow
+from .cpu_components.register_table import RegisterTable as RT
+from .cpu_components.reorder_buffer import ReorderBuffer as RB
+from .cpu_components.common_data_bus import CommonDataBus as CDB
+from .cpu_components.reservation_station import ReservationStation as RS
+from .common.constants import BRANCH_OPERATIONS
+from .program import Program as Program
+from .cpu_components.instruction_window import InstructionWindow as InstructionWindow
 
 INSTRUCTION_SIZE = 4
 
