@@ -94,7 +94,7 @@ class ReorderBuffer:
         flushed = []
         end = self.tail
         if end < start:
-            end += self.size - self.head
+            end += self.size - self.head + 1
         for i in range(start, end):
             flushed.append(self.robid_2_str(i % self.size))
             if self.table[i % self.size]["dest"] is not None:
