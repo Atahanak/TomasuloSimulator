@@ -85,21 +85,45 @@ class ReorderBuffer:
             self.table[self.head] = dict(self.rob_entry)
             self.head = (self.head + 1) % self.size  # update head in a circular fashion
 
+    # def flush(self, start):
+    #     flushed = []
+    #     end = self.tail
+    #     if end < start:
+    #         end += self.size - self.head + 1
+    #     for i in range(start, end):
+    #         flushed.append(self.robid_2_str(i % self.size))
+    #         if self.table[i % self.size]["dest"] is not None: 
+    #             if self.register_table[self.table[i % self.size]["dest"]][
+    #                 "reorder"
+    #             ] == self.robid_2_str(i % self.size): #check if register is reserved by this rob entry
+    #                 self.register_table[self.table[i % self.size]["dest"]][
+    #                     "reorder"
+    #                 ] = None
+    #         self.table[i % self.size] = dict(self.rob_entry) #flush entry
+    #     self.tail = start
+    #     return flushed
+
     def flush(self, start):
         flushed = []
-        end = self.tail
-        if end < start:
-            end += self.size - self.head + 1
-        for i in range(start, end):
-            flushed.append(self.robid_2_str(i % self.size))
-            if self.table[i % self.size]["dest"] is not None: 
-                if self.register_table[self.table[i % self.size]["dest"]][
+        if self.size == 1:
+            return []
+        c_index = start
+        if self.head == self.tail:
+            end = (self.tail) % self.size    
+        else:
+            end = (self.tail + 1) % self.size
+        while c_index != end:
+            flushed.append(self.robid_2_str(c_index))
+            if self.table[c_index]["dest"] is not None: 
+                if self.register_table[self.table[c_index]["dest"]][
                     "reorder"
-                ] == self.robid_2_str(i % self.size): #check if register is reserved by this rob entry
-                    self.register_table[self.table[i % self.size]["dest"]][
+                ] == self.robid_2_str(c_index): #check if register is reserved by this rob entry
+                    self.register_table[self.table[c_index]["dest"]][
                         "reorder"
                     ] = None
-            self.table[i % self.size] = dict(self.rob_entry) #flush entry
+            self.table[c_index] = dict(self.rob_entry) #flush entry
+            c_index += 1
+            c_index %= self.size
         self.tail = start
         return flushed
 
