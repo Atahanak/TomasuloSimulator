@@ -112,7 +112,13 @@ class ReorderBuffer:
         if self.size == 1:
             return []
         c_index = start
-        end = (self.tail + 1) % self.size
+        if self.head == self.tail:
+            end = (self.tail) % self.size    
+        else:
+            end = (self.tail + 1) % self.size
+        print("i flush")
+        print(start)
+        print(end)
         while c_index != end:
             flushed.append(self.robid_2_str(c_index))
             if self.table[c_index]["dest"] is not None: 
