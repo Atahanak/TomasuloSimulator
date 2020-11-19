@@ -15,7 +15,7 @@ class CPU:
         self.RS = []
         self.construct_reservation_stations(units)
         self.RT = RT(params["number_of_registers"])
-        self.RB = RB(len(self.RS), self.RT, self.cdb)
+        self.RB = RB(int(len(self.RS)/2), self.RT, self.cdb)
         self.program_counter = 0
         self.instruction_window_size = int(params["instruction_window_size"])
         self.instruction_window = InstructionWindow(self.instruction_window_size)

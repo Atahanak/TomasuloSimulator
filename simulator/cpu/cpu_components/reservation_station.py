@@ -1,4 +1,4 @@
-from ..cpu_components.common_data_bus import CommonDataBus
+from .common_data_bus import CommonDataBus
 from ..cpu_components.functional_unit import FunctionalUnit
 from simulator.cpu.common.constants import BRANCH_OPERATIONS
 
